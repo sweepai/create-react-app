@@ -77,6 +77,13 @@ import App from './App';
 
 it('renders without crashing', () => {
   const div = document.createElement('div');
+  class App extends React.Component {
+    render() {
+      return (
+        // Your JSX here
+      );
+    }
+  }
   ReactDOM.render(<App />, div);
 });
 ```
