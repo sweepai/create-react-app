@@ -8,50 +8,40 @@
 import React, { Component, createElement } from 'react';
 import PropTypes from 'prop-types';
 
-class BuiltEmitter extends Component {
-  static propTypes = {
-    error: PropTypes.string,
-    feature: PropTypes.func,
-  };
-
-  componentDidMount() {
-    const { error, feature } = this.props;
-
+const BuiltEmitter = ({ error, feature }) => {
+  useEffect(() => {
     if (error) {
-      this.handleError(error);
+      handleError(error);
       return;
     }
 
-    // Class components must call this.props.onReady when they're ready for the test.
-    // We will assume functional components are ready immediately after mounting.
     if (!Object.prototype.isPrototypeOf.call(Component, feature)) {
-      this.handleReady();
+      handleReady();
     }
-  }
+  }, []);
 
-  handleError(error) {
+  const handleError = (error) => {
     document.dispatchEvent(new Event('ReactFeatureError'));
   }
 
-  handleReady() {
+  const handleReady = () => {
     document.dispatchEvent(new Event('ReactFeatureDidMount'));
   }
 
-  render() {
-    const {
-      props: { feature },
-      handleReady,
-    } = this;
-    return (
-      <div>
-        {feature &&
-          createElement(feature, {
-            onReady: handleReady,
-          })}
-      </div>
-    );
-  }
+  return (
+    <div>
+      {feature &&
+        createElement(feature, {
+          onReady: handleReady,
+        })}
+    </div>
+  );
 }
+
+BuiltEmitter.propTypes = {
+  error: PropTypes.string,
+  feature: PropTypes.func,
+};
 
 class App extends Component {
   constructor(props) {
@@ -238,40 +228,27 @@ class App extends Component {
         break;
       case 'unknown-ext-inclusion':
         import('./features/webpack/UnknownExtInclusion').then(f =>
-          this.setFeature(f.default)
-        );
-        break;
-      case 'expand-env-variables':
-        import('./features/env/ExpandEnvVariables').then(f =>
-          this.setFeature(f.default)
-        );
-        break;
-      case 'base-url':
-        import('./features/config/BaseUrl').then(f =>
-          this.setFeature(f.default)
-        );
-        break;
-      case 'dynamic-import':
-        import('./features/webpack/DynamicImport').then(f =>
-          this.setFeature(f.default)
-        );
-        break;
-      default:
-        this.setState({ error: `Missing feature "${feature}"` });
-    }
-  }
-
-  setFeature(feature) {
-    this.setState({ feature });
-  }
-
-  render() {
-    const { error, feature } = this.state;
-    if (error || feature) {
-      return <BuiltEmitter error={error} feature={feature} />;
-    }
-    return null;
-  }
-}
+          const App = () => {
+            const [feature, setFeature] = useState(null);
+          
+            useEffect(() => {
+              const url = window.location.href;
+              const feature = url.slice(url.lastIndexOf('#') + 1);
+          
+              switch (feature) {
+                case 'array-destructuring':
+                  import('./features/syntax/ArrayDestructuring').then(f =>
+                    setFeature(f.default)
+                  );
+                  break;
+                // ... other cases ...
+              }
+            }, []);
+          
+            if (feature) {
+              return <BuiltEmitter feature={feature} />;
+            }
+            return null;
+          }
 
 export default App;
