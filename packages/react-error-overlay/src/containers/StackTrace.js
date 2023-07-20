@@ -1,12 +1,4 @@
-/**
- * Copyright (c) 2015-present, Facebook, Inc.
- *
- * This source code is licensed under the MIT license found in the
- * LICENSE file in the root directory of this source tree.
- */
-
-/* @flow */
-import React, { Component } from 'react';
+import React, { useState, useEffect } from 'react';
 import StackFrame from './StackFrame';
 import Collapsible from '../components/Collapsible';
 import { isInternalFile } from '../utils/isInternalFile';
@@ -29,13 +21,18 @@ type Props = {|
   editorHandler: (errorLoc: ErrorLocation) => void,
 |};
 
-class StackTrace extends Component<Props> {
-  renderFrames() {
-    const { stackFrames, errorName, contextSize, editorHandler } = this.props;
+const StackTrace = ({ stackFrames, errorName, contextSize, editorHandler }) => {
+  const renderFrames = () => {
     const renderedFrames = [];
     let hasReachedAppCode = false,
       currentBundle = [],
       bundleCount = 0;
+
+    useEffect(() => {
+      if (!isInternalUrl) {
+        hasReachedAppCode = true;
+      }
+    }, []);
 
     stackFrames.forEach((frame, index) => {
       const { fileName, _originalFileName: sourceFileName } = frame;
@@ -43,10 +40,6 @@ class StackTrace extends Component<Props> {
       const isThrownIntentionally = !isBultinErrorName(errorName);
       const shouldCollapse =
         isInternalUrl && (isThrownIntentionally || hasReachedAppCode);
-
-      if (!isInternalUrl) {
-        hasReachedAppCode = true;
-      }
 
       const frameEle = (
         <StackFrame
@@ -86,9 +79,7 @@ class StackTrace extends Component<Props> {
     return renderedFrames;
   }
 
-  render() {
-    return <div style={traceStyle}>{this.renderFrames()}</div>;
-  }
+  return <div style={traceStyle}>{renderFrames()}</div>;
 }
 
 export default StackTrace;
